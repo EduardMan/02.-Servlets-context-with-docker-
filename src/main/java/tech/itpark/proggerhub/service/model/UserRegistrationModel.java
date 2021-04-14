@@ -1,10 +1,12 @@
-package tech.itpark.proggerhub.dto;
+package tech.itpark.proggerhub.service.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import tech.itpark.proggerhub.enums.RestoreQuestion;
 
+@AllArgsConstructor
 @Data
-public class UserDto {
+public class UserRegistrationModel {
   private String login;
   private String password;
 

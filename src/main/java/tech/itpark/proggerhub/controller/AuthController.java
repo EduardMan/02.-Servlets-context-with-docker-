@@ -5,13 +5,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import tech.itpark.proggerhub.converter.BodyConverter;
-import tech.itpark.proggerhub.dto.UserDto;
-import tech.itpark.proggerhub.dto.UserIdDto;
-import tech.itpark.proggerhub.dto.UserTokenDto;
+import tech.itpark.proggerhub.dto.*;
 import tech.itpark.proggerhub.security.Authentication;
-import tech.itpark.servlet.ContentTypes;
 import tech.itpark.proggerhub.service.AuthService;
 import tech.itpark.proggerhub.service.model.UserModel;
+import tech.itpark.proggerhub.service.model.UserRegistrationModel;
+import tech.itpark.proggerhub.service.model.UserRestoreModel;
+import tech.itpark.servlet.ContentTypes;
 
 import java.io.IOException;
 
@@ -30,7 +30,7 @@ public class AuthController {
       }
 
       final var dto = converter.read(request.getReader(), UserDto.class);
-      final var id = service.register(new UserModel(dto.getLogin(), dto.getPassword()));
+      final var id = service.register(new UserRegistrationModel(dto.getLogin(), dto.getPassword(), dto.getRestoreQuestion(), dto.getRestoreAnswer()));
       // TODO: converter can write
       response.addHeader("Content-Type", ContentTypes.APPLICATION_JSON);
       converter.write(response.getWriter(), new UserIdDto(id));
@@ -64,6 +64,17 @@ public class AuthController {
   }
 
   public void restore(HttpServletRequest request, HttpServletResponse response) {
-    // TODO:
+    try {
+      if (!converter.canRead(request.getHeader("Content-Type"), UserDto.class)) {
+        response.sendError(415, "media type not supported");
+        return;
+      }
+
+      final UserRestoreDto dto = converter.read(request.getReader(), UserRestoreDto.class);
+      service.restoreUser(new UserRestoreModel(dto.getLogin(), dto.getNewPassword(), dto.getRestoreAnswer()));
+      converter.write(response.getWriter(), new ResponseMessageDto("Successful recovery"));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }

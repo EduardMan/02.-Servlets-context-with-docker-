@@ -1,11 +1,21 @@
+POST http://localhost:8080/user/restore
+Content-Type: application/json
+
+{
+  "login": "user444",
+  "restoreAnswer": "Pica",
+  "newPassword": "secret994"
+}
 ###
 
 POST http://localhost:8080/auth/register
 Content-Type: application/json
 
 {
-  "login": "user",
-  "password": "secret99"
+  "login": "user444",
+  "password": "secret99",
+  "restoreQuestion": "FIRST_ANIMAL_NAME",
+  "restoreAnswer": "Pica"
 }
 
 > {%

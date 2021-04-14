@@ -39,7 +39,8 @@ public class ApplicationConfiguration {
         "/auth/login", Map.of(HttpMethods.POST, ctrl::login),
         // TODO: secret word
         "/auth/restore", Map.of(HttpMethods.POST, ctrl::restore),
-        "/auth/remove", Map.of(HttpMethods.DELETE, ctrl::removeById)
+        "/auth/remove", Map.of(HttpMethods.DELETE, ctrl::removeById),
+        "/user/restore", Map.of(HttpMethods.POST, ctrl::restore)
     );
   }
 }

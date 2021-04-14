@@ -4,10 +4,9 @@ import lombok.Data;
 import tech.itpark.proggerhub.enums.RestoreQuestion;
 
 @Data
-public class UserDto {
+public class UserRestoreDto {
   private String login;
-  private String password;
+  private String newPassword;
 
-  private RestoreQuestion restoreQuestion;
   private String restoreAnswer;
 }

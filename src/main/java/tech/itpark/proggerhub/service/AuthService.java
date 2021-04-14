@@ -7,12 +7,13 @@ import tech.itpark.proggerhub.crypto.TokenGenerator;
 import tech.itpark.proggerhub.exception.*;
 import tech.itpark.proggerhub.repository.AuthRepository;
 import tech.itpark.proggerhub.repository.model.UserTokenModel;
+import tech.itpark.proggerhub.repository.model.UserWithIdModel;
 import tech.itpark.proggerhub.security.AuthProvider;
 import tech.itpark.proggerhub.security.Authentication;
 import tech.itpark.proggerhub.service.model.UserAuthModel;
 import tech.itpark.proggerhub.service.model.UserModel;
-
-import java.util.Set;
+import tech.itpark.proggerhub.service.model.UserRegistrationModel;
+import tech.itpark.proggerhub.service.model.UserRestoreModel;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class AuthService implements AuthProvider {
 
   // TODO: id? -> long, UUID
   // TODO: кто должен делать вычистку данных? Validator vs RichModel
-  public long register(UserModel model) {
+  public long register(UserRegistrationModel model) {
     if (model.getLogin() == null) {
       throw new BadLoginException();
     }
@@ -39,14 +40,12 @@ public class AuthService implements AuthProvider {
     // 2. Проверка пароля?
     // 3. Зашифровать (захешировать) -> TODO: fix
     // 4. Сохранить
-    if (model.getPassword().length() < 8) {
-      throw new PasswordPolicyViolationException("must be longer than 8");
-    }
+    validatePassword(model.getPassword());
 
     // TODO: IB -> взламывать дорого -> hashed
     // md5 not secure <- sha2, ...
-    return repository.save(new tech.itpark.proggerhub.repository.model.UserModel(model.getLogin().trim().toLowerCase(),
-        hasher.hash(model.getPassword())
+    return repository.save(new tech.itpark.proggerhub.repository.model.UserRegistrationModel(model.getLogin().trim().toLowerCase(),
+        hasher.hash(model.getPassword()), model.getRestoreQuestion(), hasher.hash(model.getRestoreAnswer())
     ));
   }
 
@@ -79,5 +78,22 @@ public class AuthService implements AuthProvider {
       throw new PermissionDeniedException();
     }
     // ok
+  }
+
+  public void restoreUser(UserRestoreModel model) {
+    final UserWithIdModel user = repository.findByLogin(model.getLogin()).orElseThrow(UserNotFoundException::new);
+    if (!hasher.match(user.getRestoreAnswer(), model.getRestoreAnswer())) {
+      throw new RestorePasswordException("Restore answer is wrong");
+    }
+
+    validatePassword(model.getNewPassword());
+
+    repository.updatePassword(new tech.itpark.proggerhub.repository.model.UserRestoreModel(model.getLogin(), hasher.hash(model.getNewPassword())));
+  }
+
+  private void validatePassword(String password) {
+    if (password.length() < 8) {
+      throw new PasswordPolicyViolationException("must be longer than 8");
+    }
   }
 }

@@ -1,13 +1,9 @@
 package tech.itpark.proggerhub.repository;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import tech.itpark.proggerhub.exception.DataAccessException;
-import tech.itpark.proggerhub.repository.model.UserAuthModel;
-import tech.itpark.proggerhub.repository.model.UserModel;
-import tech.itpark.proggerhub.repository.model.UserTokenModel;
-import tech.itpark.proggerhub.repository.model.UserWithIdModel;
+import tech.itpark.proggerhub.repository.model.*;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -19,16 +15,18 @@ import java.util.Set;
 public class AuthRepository {
   private final DataSource ds;
 
-  public long save(UserModel model) {
+  public long save(UserRegistrationModel model) {
     try (
         final var conn = ds.getConnection();
         final var stmt = conn.prepareStatement(
-            "INSERT INTO users(login, password) VALUES(?, ?) RETURNING id;"
+            "INSERT INTO users(login, password, restore_question, restore_answer) VALUES(?, ?, ?, ?) RETURNING id;"
         );
     ) {
       var index = 0;
       stmt.setString(++index, model.getLogin());
       stmt.setString(++index, model.getHash());
+      stmt.setString(++index, model.getRestoreQuestion().toString());
+      stmt.setString(++index, model.getHashedRestoreAnswer());
       try (
           final var rs = stmt.executeQuery();
       ) {
@@ -68,10 +66,10 @@ public class AuthRepository {
     try (
         final var conn = ds.getConnection();
         final var stmt = conn.createStatement();
-        final var rs = stmt.executeQuery("SELECT id, login, password FROM users WHERE login = '" + login + "'");
+        final var rs = stmt.executeQuery("SELECT id, login, password, restore_answer FROM users WHERE login = '" + login + "'");
     ) {
       return rs.next() ? Optional.of(
-          new UserWithIdModel(rs.getLong("id"), rs.getString("login"), rs.getString("password"))
+          new UserWithIdModel(rs.getLong("id"), rs.getString("login"), rs.getString("password"), rs.getString("restore_answer"))
       ) : Optional.empty();
     } catch (SQLException e) {
       throw new DataAccessException(e);
@@ -119,6 +117,22 @@ public class AuthRepository {
             )
         );
       }
+    } catch (SQLException e) {
+      throw new DataAccessException(e);
+    }
+  }
+
+  public void updatePassword(UserRestoreModel model) {
+    try (
+        final var conn = ds.getConnection();
+        final var stmt = conn.prepareStatement(
+                "UPDATE users SET password = ? WHERE login = ?"
+        );
+    ) {
+      var index = 0;
+      stmt.setString(++index, model.getHash());
+      stmt.setString(++index, model.getLogin());
+      stmt.executeUpdate();
     } catch (SQLException e) {
       throw new DataAccessException(e);
     }

@@ -1,14 +1,13 @@
-package tech.itpark.proggerhub.repository.model;
+package tech.itpark.proggerhub.service.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @AllArgsConstructor
 @Data
-public class UserWithIdModel {
-  private long id;
+public class UserRestoreModel {
   private String login;
-  private String hash;
+  private String newPassword;
 
   private String restoreAnswer;
 }
