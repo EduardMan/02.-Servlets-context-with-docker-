@@ -1,0 +1,102 @@
+###
+
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "login": "user",
+  "password": "secret99"
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+###
+
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "login": "user",
+  "password": "secret99"
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+### <- user data
+# whitelist/allowlisting -> ? prepareStatement
+# blacklist/blocklisting/denylisting -> deny (sanitizing)
+
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "login": "' AND 1!=1 UNION SELECT 1, 'admin', 'fa0bbaad89e4440ed7ad2f11e7b33f73c7589ea86823182e69671ca13216c23241ca397cf50f2df48d5ded068a6c2eecb8e2db23515df1faf5f8cd64eda44d2a:16c0462fc909e426d9415b0f06e55ae8c12b50976f533fd4cd46268170d6af43' -- ;",
+  "password": "password"
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+  client.global.set("admin_token", response.body.token);
+});
+%}
+
+###
+
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "login": "anonymous",
+  "password": "password"
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+###
+
+GET http://localhost:8080/auth/register
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 405, "Response status is not 405");
+});
+%}
+
+###
+
+POST http://localhost:8080/auth/404
+Content-Type: application/json
+
+{
+  "login": "Administrator",
+  "password": "secret99"
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 404, "Response status is not 404");
+});
+%}
+
+###
+
+DELETE http://localhost:8080/auth/remove
+
+###
+
+DELETE http://localhost:8080/auth/remove
+Authorization: {{admin_token}}
+
