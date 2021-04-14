@@ -4,7 +4,7 @@
               auth="Container"
               type="javax.sql.DataSource"
               driverClassName="org.postgresql.Driver"
-              url="jdbc:postgresql://localhost:6849/db?user=postgres&amp;password=postgres"
+              url="${JDBC_DATABASE_URL}"
               maxTotal="25"
               maxIdle="10"
               validationQuery="select 1"/>
