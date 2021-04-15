@@ -26,4 +26,3 @@
 /.nb-gradle/
 
 apache-tomcat-10.0.5
-docker-entrypoint-initdb.d
