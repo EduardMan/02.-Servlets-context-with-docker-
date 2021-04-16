@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   ws:
-    image: webservice
+    image: ghcr.io/eduardman/tsrv:latest
     build: .
     ports:
       - 8080:8080
